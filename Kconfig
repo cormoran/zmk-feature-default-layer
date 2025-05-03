@@ -1,2 +1,15 @@
 config ZMK_DEFAULT_LAYER
     bool "Default layer"
+
+if ZMK_DEFAULT_LAYER
+
+#layers between below[min, max](inclusive) can be configured as default layer
+config ZMK_DEFAULT_LAYER_MIN_INDEX
+    int "min layer index configurable as default layer"
+    default 0
+
+config ZMK_DEFAULT_LAYER_MAX_INDEX
+    int "max layer index configurable as default layer"
+    default 0
+
+endif

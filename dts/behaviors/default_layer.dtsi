@@ -8,7 +8,7 @@
     behaviors {
         /omit-if-no-ref/ df: default_layer {
             compatible = "zmk,behavior-default-layer";
-            #binding-cells = <1>;
+            #binding-cells = <2>;
         };
     };
 };
