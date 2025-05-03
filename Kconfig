@@ -1,0 +1,2 @@
+config ZMK_DEFAULT_LAYER
+    bool "Default layer"
