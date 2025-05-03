@@ -44,22 +44,24 @@ static void zmk_default_layers_save_state_work(struct k_work *_work) {
 }
 
 static int apply_default_layer_config(struct zmk_endpoint_instance endpoint) {
-    uint8_t layer = zmk_default_layer_get(endpoint);
+    uint8_t layer_index = zmk_default_layer_get(endpoint);
     // deactivate other layers first
-    zmk_keymap_layer_id_t global_default_layer = zmk_keymap_layer_default();
+    zmk_keymap_layer_id_t global_default_layer_index =
+        zmk_keymap_layer_default();  // TODO: zmk_keymap_layer_id_to_index()?
     for (int i = CONFIG_ZMK_DEFAULT_LAYER_MIN_INDEX;
          i <= CONFIG_ZMK_DEFAULT_LAYER_MAX_INDEX; i++) {
-        if (i != layer && i != global_default_layer) {
-            int rc = zmk_keymap_layer_deactivate(
-                default_layers.endpoint_defaults[i]);
+        if (i != layer_index && i != global_default_layer_index) {
+            int rc =
+                zmk_keymap_layer_deactivate(zmk_keymap_layer_index_to_id(i));
             if (rc != 0) {
                 LOG_WRN("Failed deactivate layer: %d for endpoint %d",
                         default_layers.endpoint_defaults[i], i);
             }
         }
     }
-    if (layer != global_default_layer) {
-        int ret = zmk_keymap_layer_activate(layer);
+    if (layer_index != global_default_layer_index) {
+        int ret = zmk_keymap_layer_activate(
+            zmk_keymap_layer_index_to_id(layer_index));
         if (ret < 0) {
             LOG_WRN(
                 "Could not apply default layer from settings. Perhaps "
@@ -69,7 +71,7 @@ static int apply_default_layer_config(struct zmk_endpoint_instance endpoint) {
         }
 
         LOG_INF("Activated default layer (%d) for the current endpoint.",
-                layer);
+                layer_index);
     }
     return 0;
 }
