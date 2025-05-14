@@ -14,7 +14,8 @@
 #include <zmk/behavior.h>
 #include <zmk/endpoints.h>
 #include <zmk/event_manager.h>
-#include <zmk/events/endpoint_changed.h>
+#include <zmk/events/ble_active_profile_changed.h>
+#include <zmk/events/usb_conn_state_changed.h>
 #include <zmk/keymap.h>
 
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
@@ -116,6 +117,8 @@ static int default_layer_init(void) {
 
     settings_load_subtree("default_layer");
 
+    // NOTE: endpoint is not initialized yet. zmk_endpoints_selected doesn't
+    // return proper value.
     return apply_default_layer_config(zmk_endpoints_selected());
 }
 SYS_INIT(default_layer_init, APPLICATION, CONFIG_APPLICATION_INIT_PRIORITY);
@@ -187,16 +190,15 @@ BEHAVIOR_DT_INST_DEFINE(0, behavior_default_layer_init, NULL, NULL, NULL,
                         &behavior_default_layer_driver_api);
 
 static int endpoint_changed_cb(const zmk_event_t *eh) {
-    struct zmk_endpoint_changed *evt = as_zmk_endpoint_changed(eh);
-    return ZMK_EV_EVENT_BUBBLE;
-    if (evt != NULL) {
-        apply_default_layer_config(evt->endpoint);
+    if (as_zmk_ble_active_profile_changed(eh) ||
+        as_zmk_usb_conn_state_changed(eh)) {
+        apply_default_layer_config(zmk_endpoints_selected());
     }
-
     return ZMK_EV_EVENT_BUBBLE;
 }
 
 ZMK_LISTENER(default_layer, endpoint_changed_cb);
-ZMK_SUBSCRIPTION(default_layer, zmk_endpoint_changed);
+ZMK_SUBSCRIPTION(default_layer, zmk_usb_conn_state_changed);
+ZMK_SUBSCRIPTION(default_layer, zmk_ble_active_profile_changed);
 
 #endif
