@@ -180,9 +180,64 @@ static int on_keymap_binding_released(struct zmk_behavior_binding *binding,
     return ZMK_BEHAVIOR_OPAQUE;
 }
 
+#if IS_ENABLED(CONFIG_ZMK_BEHAVIOR_METADATA)
+
+static const struct behavior_parameter_value_metadata select_param1_values[] = {
+    {
+        .display_name = "Select default layer for current transport",
+        .type         = BEHAVIOR_PARAMETER_VALUE_TYPE_VALUE,
+        .value        = DEFAULT_LAYER_CMD_SELECT,
+    },
+};
+
+static const struct behavior_parameter_value_metadata select_param2_values[] = {
+    {
+        .display_name = "Animation index",
+        .type         = BEHAVIOR_PARAMETER_VALUE_TYPE_RANGE,
+        .range =
+            {
+                .min = CONFIG_ZMK_DEFAULT_LAYER_MIN_INDEX,
+                .max = CONFIG_ZMK_DEFAULT_LAYER_MAX_INDEX,
+            },
+    },
+};
+
+static const struct behavior_parameter_metadata_set select_metadata_set = {
+    .param1_values     = select_param1_values,
+    .param1_values_len = ARRAY_SIZE(select_param1_values),
+    .param2_values     = select_param2_values,
+    .param2_values_len = ARRAY_SIZE(select_param2_values),
+};
+
+static const struct behavior_parameter_value_metadata next_param1_values[] = {
+    {
+        .display_name = "Select next default layer for current transport",
+        .type         = BEHAVIOR_PARAMETER_VALUE_TYPE_VALUE,
+        .value        = DEFAULT_LAYER_CMD_NEXT,
+    },
+};
+
+static const struct behavior_parameter_metadata_set next_metadata_set = {
+    .param1_values     = next_param1_values,
+    .param1_values_len = ARRAY_SIZE(next_param1_values),
+};
+
+static const struct behavior_parameter_metadata_set metadata_sets[] = {
+    select_metadata_set, next_metadata_set};
+
+static const struct behavior_parameter_metadata metadata = {
+    .sets_len = ARRAY_SIZE(metadata_sets),
+    .sets     = metadata_sets,
+};
+
+#endif
+
 static const struct behavior_driver_api behavior_default_layer_driver_api = {
     .binding_pressed  = on_keymap_binding_pressed,
     .binding_released = on_keymap_binding_released,
+#if IS_ENABLED(CONFIG_ZMK_BEHAVIOR_METADATA)
+    .parameter_metadata = &metadata,
+#endif  // IS_ENABLED(CONFIG_ZMK_BEHAVIOR_METADATA)
 };
 
 BEHAVIOR_DT_INST_DEFINE(0, behavior_default_layer_init, NULL, NULL, NULL,
