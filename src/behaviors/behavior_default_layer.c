@@ -36,7 +36,7 @@ static zmk_keymap_layer_id_t zmk_default_layer_get(
     return default_layers.endpoint_defaults[index];
 }
 static zmk_keymap_layer_id_t zmk_default_layer_get_current() {
-    return zmk_default_layer_get(zmk_endpoints_selected());
+    return zmk_default_layer_get(zmk_endpoint_get_selected());
 }
 
 static void zmk_default_layers_save_state_work(struct k_work *_work) {
@@ -53,7 +53,7 @@ static int apply_default_layer_config(struct zmk_endpoint_instance endpoint) {
          i <= CONFIG_ZMK_DEFAULT_LAYER_MAX_INDEX; i++) {
         if (i != layer_index && i != global_default_layer_index) {
             int rc =
-                zmk_keymap_layer_deactivate(zmk_keymap_layer_index_to_id(i));
+                zmk_keymap_layer_deactivate(zmk_keymap_layer_index_to_id(i), true);
             if (rc != 0) {
                 LOG_WRN("Failed deactivate layer: %d for endpoint %d",
                         default_layers.endpoint_defaults[i], i);
@@ -62,7 +62,7 @@ static int apply_default_layer_config(struct zmk_endpoint_instance endpoint) {
     }
     if (layer_index != global_default_layer_index) {
         int ret = zmk_keymap_layer_activate(
-            zmk_keymap_layer_index_to_id(layer_index));
+            zmk_keymap_layer_index_to_id(layer_index), true);
         if (ret < 0) {
             LOG_WRN(
                 "Could not apply default layer from settings. Perhaps "
@@ -117,9 +117,9 @@ static int default_layer_init(void) {
 
     settings_load_subtree("default_layer");
 
-    // NOTE: endpoint is not initialized yet. zmk_endpoints_selected doesn't
+    // NOTE: endpoint is not initialized yet. zmk_endpoint_get_selected doesn't
     // return proper value.
-    return apply_default_layer_config(zmk_endpoints_selected());
+    return apply_default_layer_config(zmk_endpoint_get_selected());
 }
 SYS_INIT(default_layer_init, APPLICATION, CONFIG_APPLICATION_INIT_PRIORITY);
 
@@ -155,7 +155,7 @@ static int behavior_default_layer_init(const struct device *dev) { return 0; }
 static int on_keymap_binding_pressed(struct zmk_behavior_binding *binding,
                                      struct zmk_behavior_binding_event event) {
     int ret                               = 0;
-    struct zmk_endpoint_instance endpoint = zmk_endpoints_selected();
+    struct zmk_endpoint_instance endpoint = zmk_endpoint_get_selected();
 
     switch (binding->param1) {
         case DEFAULT_LAYER_CMD_SELECT:
@@ -247,7 +247,7 @@ BEHAVIOR_DT_INST_DEFINE(0, behavior_default_layer_init, NULL, NULL, NULL,
 static int endpoint_changed_cb(const zmk_event_t *eh) {
     if (as_zmk_ble_active_profile_changed(eh) ||
         as_zmk_usb_conn_state_changed(eh)) {
-        apply_default_layer_config(zmk_endpoints_selected());
+        apply_default_layer_config(zmk_endpoint_get_selected());
     }
     return ZMK_EV_EVENT_BUBBLE;
 }
