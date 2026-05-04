@@ -1,3 +1,4 @@
+import os
 import platform
 import shutil
 import subprocess
@@ -9,12 +10,15 @@ from dataclasses import dataclass
 THIS_DIR = Path(__file__).parent.resolve()
 
 
-def run_west(args: list[str]) -> subprocess.CompletedProcess[str]:
+def run_west(
+    args: list[str], env_overrides: dict[str, str] | None = None
+) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
         ["west", *args],
         capture_output=True,
         text=True,
         cwd=THIS_DIR,
+        env=os.environ | (env_overrides or {}),
     )
 
 
@@ -47,7 +51,10 @@ class DefaultLayerTests(unittest.TestCase):
         test_build_dir = self.BUILD_DIR / THIS_DIR.name
         shutil.rmtree(test_build_dir, ignore_errors=True)
 
-        result = run_west(["zmk-test", "tests", "-m", ".", "-d", str(test_build_dir)])
+        result = run_west(
+            ["zmk-test", "tests", "-m", ".", "-d", str(test_build_dir)],
+            env_overrides={"J": "1"},
+        )
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertIn("PASS: ", result.stdout, result.stdout + result.stderr)
         self.assertNotIn("FAIL: ", result.stdout, result.stdout + result.stderr)
@@ -59,6 +66,7 @@ class DefaultLayerTests(unittest.TestCase):
                     config=[
                         # Verify keyboard name is set
                         'CONFIG_ZMK_KEYBOARD_NAME="Default Layer Test"',
+                        'CONFIG_BT_DEVICE_NAME="Default Layer"',
                         # Verify the default layer feature is enabled
                         "CONFIG_ZMK_DEFAULT_LAYER=y",
                         "CONFIG_ZMK_DEFAULT_LAYER_MIN_INDEX=0",
