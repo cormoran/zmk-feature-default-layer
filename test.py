@@ -1,30 +1,21 @@
-import os
 import platform
 import shutil
 import subprocess
 import unittest
-from dataclasses import dataclass
 from pathlib import Path
+
+from dataclasses import dataclass
 
 THIS_DIR = Path(__file__).parent.resolve()
 
 
-def run_command(
-    args: list[str], cwd: Path = THIS_DIR, env_overrides: dict[str, str] | None = None
-) -> subprocess.CompletedProcess[str]:
+def run_west(args: list[str]) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
-        args,
+        ["west", *args],
         capture_output=True,
         text=True,
-        cwd=cwd,
-        env=os.environ | (env_overrides or {}),
+        cwd=THIS_DIR,
     )
-
-
-def run_west(
-    args: list[str], cwd: Path = THIS_DIR, env_overrides: dict[str, str] | None = None
-) -> subprocess.CompletedProcess[str]:
-    return run_command(["west", *args], cwd=cwd, env_overrides=env_overrides)
 
 
 @dataclass
@@ -34,11 +25,13 @@ class NotFound:
 
 @dataclass
 class ConfigAndDeviceTree:
+    # Expected rows in .config
     config: list[str | NotFound]
+    # Expected rows in devicetree_generated.h
     device: list[str | NotFound]
 
 
-class DefaultLayerTests(unittest.TestCase):
+class WestCommandsTests(unittest.TestCase):
     WEST_TOPDIR: Path
     BUILD_DIR: Path
 
@@ -48,22 +41,16 @@ class DefaultLayerTests(unittest.TestCase):
         cls.BUILD_DIR = cls.WEST_TOPDIR / "build"
 
     @unittest.skipUnless(
-        platform.system() == "Linux", "native_sim tests are only supported on Linux"
+        platform.system() == "Linux", "zmk-test is only supported on Linux"
     )
-    def test_default_layer_increment_runtime(self):
-        self._assert_native_sim_snapshot(
-            THIS_DIR / "tests" / "default_layer_increment",
-            "default-layer-increment-runtime",
-        )
+    def test_zmk_test(self):
+        test_build_dir = self.BUILD_DIR / THIS_DIR.name
+        shutil.rmtree(test_build_dir, ignore_errors=True)
 
-    @unittest.skipUnless(
-        platform.system() == "Linux", "native_sim tests are only supported on Linux"
-    )
-    def test_default_layer_select_runtime(self):
-        self._assert_native_sim_snapshot(
-            THIS_DIR / "tests" / "default_layer_select",
-            "default-layer-select-runtime",
-        )
+        result = run_west(["zmk-test", "tests", "-m", ".", "-d", str(test_build_dir)])
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("PASS: ", result.stdout, result.stdout + result.stderr)
+        self.assertNotIn("FAIL: ", result.stdout, result.stdout + result.stderr)
 
     def test_zmk_build(self):
         self._test_zmk_build(
@@ -86,62 +73,10 @@ class DefaultLayerTests(unittest.TestCase):
             }
         )
 
-    def _native_sim_build_dir(self, build_name: str) -> Path:
-        return self.BUILD_DIR / THIS_DIR.name / build_name
-
-    def _build_native_sim_fixture(self, fixture_dir: Path, build_name: str) -> Path:
-        build_dir = self._native_sim_build_dir(build_name)
-        shutil.rmtree(build_dir, ignore_errors=True)
-
-        result = run_west(
-            [
-                "build",
-                "-s",
-                str(self.WEST_TOPDIR / "zmk" / "app"),
-                "-d",
-                str(build_dir),
-                "-b",
-                "native_sim//zmk_test_mock",
-                "-p",
-                "--",
-                "-DCONFIG_ASSERT=y",
-                f"-DZMK_CONFIG={fixture_dir}",
-                f"-DZMK_EXTRA_MODULES={THIS_DIR}",
-            ]
-        )
-        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-        return build_dir
-
-    def _run_native_sim(self, build_dir: Path) -> str:
-        executable = build_dir / "zephyr" / "zmk.exe"
-        self.assertTrue(executable.exists(), f"{executable} is missing")
-
-        result = run_command([str(executable)], cwd=build_dir)
-        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-        return result.stdout + result.stderr
-
-    def _extract_runtime_trace(self, output: str) -> str:
-        extracted_lines: list[str] = []
-        for line in output.splitlines():
-            if line == "zmk: Welcome to ZMK!":
-                extracted_lines.append(line)
-            elif "zmk: default-layer " in line:
-                extracted_lines.append(line.split("zmk: ", 1)[1])
-            elif "zmk: on_keymap_binding_" in line:
-                extracted_lines.append(line.split("zmk: on_keymap_binding_", 1)[1])
-
-        return "".join(f"{line}\n" for line in extracted_lines)
-
-    def _assert_native_sim_snapshot(self, fixture_dir: Path, build_name: str):
-        build_dir = self._build_native_sim_fixture(fixture_dir, build_name)
-        output = self._run_native_sim(build_dir)
-        actual_trace = self._extract_runtime_trace(output)
-        expected_trace = (fixture_dir / "keycode_events.snapshot").read_text()
-        self.assertEqual(expected_trace, actual_trace)
-
     def _test_zmk_build(
         self, artifacts_and_expected_build_params: dict[str, ConfigAndDeviceTree]
     ):
+
         for artifact in artifacts_and_expected_build_params.keys():
             shutil.rmtree(self.BUILD_DIR / artifact, ignore_errors=True)
 
