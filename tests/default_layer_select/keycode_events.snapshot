@@ -1,9 +1,28 @@
-zmk: Welcome to ZMK!
+default-layer apply reason=init endpoint=None index=0 target=0 global=0
+default-layer active endpoint=None index=0 layer=0
 pressed: position 0 keycode 0x70004
 released: position 0 keycode 0x70004
+default-layer command=select endpoint=None index=0 from=0 to=1
+default-layer apply reason=update endpoint=None index=0 target=1 global=0
+default-layer active endpoint=None index=0 layer=1
+default-layer schedule-save endpoint=None index=0 layer=1 delay-ms=1
+default-layer save endpoint=None index=0 layer=1
+default-layer save-skipped endpoint=None index=0 reason=no-backend
 pressed: position 0 keycode 0x70008
 released: position 0 keycode 0x70008
+default-layer command=select endpoint=None index=0 from=1 to=2
+default-layer apply reason=update endpoint=None index=0 target=2 global=0
+default-layer active endpoint=None index=0 layer=2
+default-layer schedule-save endpoint=None index=0 layer=2 delay-ms=1
+default-layer save endpoint=None index=0 layer=2
+default-layer save-skipped endpoint=None index=0 reason=no-backend
 pressed: position 0 keycode 0x7000C
 released: position 0 keycode 0x7000C
+default-layer command=select endpoint=None index=0 from=2 to=0
+default-layer apply reason=update endpoint=None index=0 target=0 global=0
+default-layer active endpoint=None index=0 layer=0
+default-layer schedule-save endpoint=None index=0 layer=0 delay-ms=1
+default-layer save endpoint=None index=0 layer=0
+default-layer save-skipped endpoint=None index=0 reason=no-backend
 pressed: position 0 keycode 0x70004
 released: position 0 keycode 0x70004
