@@ -151,15 +151,14 @@ static int on_keymap_binding_pressed(struct zmk_behavior_binding *binding,
     switch (binding->param1) {
         case DEFAULT_LAYER_CMD_SELECT:
             return zmk_default_layer_set(endpoint, binding->param2);
-            break;
-        case DEFAULT_LAYER_CMD_NEXT:
+        case DEFAULT_LAYER_CMD_NEXT: {
             zmk_keymap_layer_id_t current = zmk_default_layer_get(endpoint);
             zmk_keymap_layer_id_t next =
                 current >= CONFIG_ZMK_DEFAULT_LAYER_MAX_INDEX
                     ? CONFIG_ZMK_DEFAULT_LAYER_MIN_INDEX
                     : current + 1;
             return zmk_default_layer_set(endpoint, next);
-            break;
+        }
         default:
             LOG_ERR("Unknown command for df: %d", binding->param1);
     }
