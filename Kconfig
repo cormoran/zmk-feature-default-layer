@@ -1,6 +1,5 @@
 config ZMK_DEFAULT_LAYER
     bool "Default layer"
-    depends on ZMK_USB || ZMK_BLE
 
 if ZMK_DEFAULT_LAYER
 

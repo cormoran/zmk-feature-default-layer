@@ -34,8 +34,9 @@ static struct k_work_delayable df_layers_save_work;
 static struct zmk_endpoint_instance df_layers_save_endpoint = {.transport = ZMK_TRANSPORT_NONE};
 #endif
 
-static void default_layer_describe_endpoint(struct zmk_endpoint_instance endpoint, char *endpoint_str,
-                                            size_t endpoint_str_len, int *endpoint_index) {
+static void default_layer_describe_endpoint(struct zmk_endpoint_instance endpoint,
+                                            char *endpoint_str, size_t endpoint_str_len,
+                                            int *endpoint_index) {
     zmk_endpoint_instance_to_str(endpoint, endpoint_str, endpoint_str_len);
     *endpoint_index = zmk_endpoint_instance_to_index(endpoint);
 }
@@ -63,7 +64,8 @@ static void zmk_default_layers_save_state_work(struct k_work *_work) {
     default_layer_describe_endpoint(df_layers_save_endpoint, endpoint_str, sizeof(endpoint_str),
                                     &endpoint_index);
 
-    LOG_INF("default-layer save endpoint=%s index=%d layer=%d", endpoint_str, endpoint_index, layer);
+    LOG_INF("default-layer save endpoint=%s index=%d layer=%d", endpoint_str, endpoint_index,
+            layer);
 
     int ret = settings_save_one("default_layer/settings", &default_layers, sizeof(default_layers));
     if (ret == -ENOENT) {
@@ -89,8 +91,7 @@ static int apply_default_layer_config(struct zmk_endpoint_instance endpoint, con
             endpoint_str, endpoint_index, layer_index, global_default_layer_index);
 
     // Deactivate all managed layers except the selected layer and the immutable global default.
-    for (int i = CONFIG_ZMK_DEFAULT_LAYER_MIN_INDEX; i <= CONFIG_ZMK_DEFAULT_LAYER_MAX_INDEX;
-         i++) {
+    for (int i = CONFIG_ZMK_DEFAULT_LAYER_MIN_INDEX; i <= CONFIG_ZMK_DEFAULT_LAYER_MAX_INDEX; i++) {
         if (i != layer_index && i != global_default_layer_index) {
             int rc = zmk_keymap_layer_deactivate(zmk_keymap_layer_index_to_id(i), true);
             if (rc != 0) {
@@ -192,13 +193,12 @@ static int default_layer_init(void) {
 }
 SYS_INIT(default_layer_init, APPLICATION, CONFIG_APPLICATION_INIT_PRIORITY);
 
-static int zmk_default_layer_set(struct zmk_endpoint_instance endpoint,
-                                 zmk_keymap_layer_id_t layer, const char *command) {
+static int zmk_default_layer_set(struct zmk_endpoint_instance endpoint, zmk_keymap_layer_id_t layer,
+                                 const char *command) {
     if (layer >= ZMK_KEYMAP_LAYERS_LEN) {
         return -EINVAL;
     }
-    if (layer < CONFIG_ZMK_DEFAULT_LAYER_MIN_INDEX ||
-        CONFIG_ZMK_DEFAULT_LAYER_MAX_INDEX < layer) {
+    if (layer < CONFIG_ZMK_DEFAULT_LAYER_MIN_INDEX || CONFIG_ZMK_DEFAULT_LAYER_MAX_INDEX < layer) {
         return -EINVAL;
     }
 

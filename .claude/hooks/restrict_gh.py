@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Hook to restrict certain gh commands."""
+
 import json
 import sys
 
