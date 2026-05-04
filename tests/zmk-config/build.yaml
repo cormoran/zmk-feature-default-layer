@@ -1,0 +1,4 @@
+include:
+  - artifact: default_layer_xiao_ble
+    board: xiao_ble//zmk
+    shield: tester_xiao
