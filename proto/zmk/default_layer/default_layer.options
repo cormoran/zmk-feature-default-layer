@@ -1,0 +1,4 @@
+zmk.default_layer.DefaultLayerEntry.label max_size:16
+zmk.default_layer.DefaultLayersResponse.entries max_count:12
+zmk.default_layer.StatusResponse.message max_size:64
+zmk.default_layer.ErrorResponse.message max_size:96

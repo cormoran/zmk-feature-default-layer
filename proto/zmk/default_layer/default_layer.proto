@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+package zmk.default_layer;
+
+enum Transport {
+    TRANSPORT_NONE = 0;
+    TRANSPORT_USB = 1;
+    TRANSPORT_BLE = 2;
+}
+
+message Endpoint {
+    Transport transport = 1;
+    uint32 profile_index = 2;
+}
+
+message DefaultLayerEntry {
+    Endpoint endpoint = 1;
+    string label = 2;
+    int32 layer = 3;
+    bool selected = 4;
+}
+
+message GetDefaultLayersRequest {}
+
+message SetDefaultLayerRequest {
+    Endpoint endpoint = 1;
+    int32 layer = 2;
+}
+
+message DefaultLayersResponse { repeated DefaultLayerEntry entries = 1; }
+
+message StatusResponse { string message = 1; }
+
+message ErrorResponse { string message = 1; }
+
+message Request {
+    oneof request_type {
+        GetDefaultLayersRequest get_default_layers = 1;
+        SetDefaultLayerRequest set_default_layer = 2;
+    }
+}
+
+message Response {
+    oneof response_type {
+        ErrorResponse error = 1;
+        DefaultLayersResponse default_layers = 2;
+        StatusResponse status = 3;
+    }
+}

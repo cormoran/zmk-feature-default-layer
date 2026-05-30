@@ -1,5 +1,6 @@
 config ZMK_DEFAULT_LAYER
     bool "Default layer"
+    select ZMK_CUSTOM_SETTINGS
 
 if ZMK_DEFAULT_LAYER
 
@@ -11,5 +12,13 @@ config ZMK_DEFAULT_LAYER_MIN_INDEX
 config ZMK_DEFAULT_LAYER_MAX_INDEX
     int "max layer index configurable as default layer"
     default 0
+
+config ZMK_DEFAULT_LAYER_STUDIO_RPC
+    bool "Enable default layer custom Studio RPC"
+    depends on ZMK_STUDIO
+    select NANOPB
+    help
+      Expose a custom Studio RPC subsystem and Web UI for editing the default
+      layer assigned to each endpoint.
 
 endif

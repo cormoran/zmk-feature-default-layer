@@ -7,8 +7,8 @@ manifest:
       url-base: https://github.com/cormoran
   projects:
     - name: zmk
-      remote: zmkfirmware
-      revision: main
+      remote: cormoran
+      revision: main+custom-studio-protocol
       import:
         file: app/west.yml
       clone-depth: 1
@@ -16,3 +16,6 @@ manifest:
       remote: cormoran
       revision: main
       import: true
+    - name: zmk-feature-custom-settings
+      remote: cormoran
+      revision: main

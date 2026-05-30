@@ -3,6 +3,10 @@
 [![Test](https://github.com/cormoran/zmk-feature-default-layer/actions/workflows/zmk-module.yml/badge.svg?branch=main)](https://github.com/cormoran/zmk-feature-default-layer/actions/workflows/zmk-module.yml)
 
 ZMK module to switch default layer depending on currently connected endpoint.
+The saved values are registered through
+[zmk-feature-custom-settings](https://github.com/cormoran/zmk-feature-custom-settings), so they can
+be exported/imported through the unified custom settings RPC. The module also exposes its own custom
+Studio RPC subsystem with a small Web UI for editing per-transport default layers.
 
 The code is based on @elpekenin's on-going pull request. https://github.com/zmkfirmware/zmk/pull/2222
 
@@ -18,9 +22,16 @@ The code is based on @elpekenin's on-going pull request. https://github.com/zmkf
          url-base: https://github.com/cormoran
      projects:
        ...
+       # Required: patched ZMK with custom Studio RPC support when using Web UI.
+       - name: zmk
+         remote: cormoran
+         revision: main+custom-studio-protocol
+         import:
+           file: app/west.yml
        - name: zmk-feature-default-layer
          remote: cormoran
          revision: main
+         import: true
        ...
    ```
 
@@ -33,6 +44,14 @@ The code is based on @elpekenin's on-going pull request. https://github.com/zmkf
    CONFIG_ZMK_DEFAULT_LAYER=y
    CONFIG_ZMK_DEFAULT_LAYER_MIN_INDEX=0
    CONFIG_ZMK_DEFAULT_LAYER_MAX_INDEX=3
+   ```
+
+   To edit default layers from the Web UI, also enable Studio and the module RPC:
+
+   ```conf
+   CONFIG_ZMK_STUDIO=y
+   CONFIG_ZMK_DEFAULT_LAYER_STUDIO_RPC=y
+   CONFIG_ZMK_CUSTOM_SETTINGS_STUDIO_RPC=y
    ```
 
 3. Include the behavior definition in your `<keyboard>.dtsi`:
@@ -56,6 +75,19 @@ The code is based on @elpekenin's on-going pull request. https://github.com/zmkf
 
    - `&df DF_INC` — increments (cycles) the default layer index for the active endpoint.
    - `&df DF_SEL N` — sets the default layer index to `N` for the active endpoint.
+
+### Web UI
+
+When `CONFIG_ZMK_DEFAULT_LAYER_STUDIO_RPC=y`, ZMK Studio lists the
+`zmk__default_layer` custom subsystem and links to the hosted Web UI:
+
+```
+https://cormoran.github.io/zmk-feature-default-layer/
+```
+
+The UI reads the default layer assigned to `None`, `USB`, and each BLE profile, then saves changes
+through the module RPC. These values are stored as custom settings under the `zmk__default_layer`
+subsystem, so they are also available to the generic custom settings export/import UI.
 
 ## Module Development Guide
 
@@ -116,7 +148,3 @@ west zmk-build tests/zmk-config
 # Run unit test directly
 west zmk-test tests -m .
 ```
-
-## TODOs
-
-- [ ] Respect CONFIG_SETTING flag
