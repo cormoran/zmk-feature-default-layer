@@ -1,0 +1,52 @@
+#include <dt-bindings/zmk/keys.h>
+#include <behaviors.dtsi>
+#include <dt-bindings/zmk/kscan_mock.h>
+#include <behaviors/default_layer.dtsi>
+#include <dt-bindings/zmk_behavior_default_layer/default_layer.h>
+
+/ {
+	keymap {
+		compatible = "zmk,keymap";
+
+		default_layer {
+			bindings = <
+				&kp A  &df DF_INC
+			>;
+		};
+
+		alt_layer_1 {
+			bindings = <
+				&kp E  &df DF_INC
+			>;
+		};
+
+		alt_layer_2 {
+			bindings = <
+				&kp I  &df DF_INC
+			>;
+		};
+	};
+};
+
+&kscan {
+	events = <
+		/* Increment from layer 0 to layer 1 */
+		ZMK_MOCK_PRESS(0,1,10)
+		ZMK_MOCK_RELEASE(0,1,10)
+		/* Press key — layer 1 active, should produce E */
+		ZMK_MOCK_PRESS(0,0,10)
+		ZMK_MOCK_RELEASE(0,0,10)
+		/* Increment from layer 1 to layer 2 */
+		ZMK_MOCK_PRESS(0,1,10)
+		ZMK_MOCK_RELEASE(0,1,10)
+		/* Press key — layer 2 active, should produce I */
+		ZMK_MOCK_PRESS(0,0,10)
+		ZMK_MOCK_RELEASE(0,0,10)
+		/* Increment from layer 2 back to layer 0 (wraps) */
+		ZMK_MOCK_PRESS(0,1,10)
+		ZMK_MOCK_RELEASE(0,1,10)
+		/* Press key — back to layer 0, should produce A */
+		ZMK_MOCK_PRESS(0,0,10)
+		ZMK_MOCK_RELEASE(0,0,10)
+	>;
+};
