@@ -9,7 +9,7 @@ from pathlib import Path
 from dataclasses import dataclass
 
 THIS_DIR = Path(__file__).parent.resolve()
-TEST_BUILD_DIR_NAME = "tests-zmk-module-template-with-custom-studio-rpc"
+TEST_BUILD_DIR_NAME = "tests-zmk-feature-default-layer"
 
 
 def run_west(args: list[str]) -> subprocess.CompletedProcess[str]:
@@ -59,44 +59,52 @@ class WestCommandsTests(unittest.TestCase):
     def test_zmk_build(self):
         self._test_zmk_build(
             {
-                "module_template_board_feature_disabled": ConfigAndDeviceTree(
+                "default_layer_board_disabled": ConfigAndDeviceTree(
                     config=[
                         'CONFIG_ZMK_KEYBOARD_NAME="Module Test"',
                         "CONFIG_ZMK_USB=y",
                         "CONFIG_ZMK_BLE=y",
-                        "# CONFIG_ZMK_TEMPLATE_FEATURE is not set",
+                        "# CONFIG_ZMK_DEFAULT_LAYER is not set",
                     ],
                     device=[
                         "DT_COMPAT_HAS_OKAY_zmk_keymap",
                     ],
                 ),
-                "module_template_board_with_rpc": ConfigAndDeviceTree(
+                "default_layer_board_without_rpc": ConfigAndDeviceTree(
                     config=[
-                        "CONFIG_ZMK_STUDIO=y",
-                        "CONFIG_ZMK_TEMPLATE_FEATURE=y",
-                        "CONFIG_ZMK_TEMPLATE_FEATURE_STUDIO_RPC=y",
-                    ],
-                    device=[],
-                ),
-                "module_template_board_without_rpc": ConfigAndDeviceTree(
-                    config=[
-                        "CONFIG_ZMK_TEMPLATE_FEATURE=y",
+                        "CONFIG_ZMK_DEFAULT_LAYER=y",
+                        "CONFIG_ZMK_DEFAULT_LAYER_MAX_INDEX=3",
                         "# CONFIG_ZMK_STUDIO is not set",
-                        NotFound("CONFIG_ZMK_TEMPLATE_FEATURE_STUDIO_RPC"),
+                        NotFound("CONFIG_ZMK_DEFAULT_LAYER_STUDIO_RPC"),
                     ],
                     device=[],
                 ),
-                "custom_settings_board": ConfigAndDeviceTree(
+                "default_layer_board_with_rpc": ConfigAndDeviceTree(
                     config=[
                         # Verify that zmk-feature-custom-settings is present and enabled
                         "zmk-feature-custom-settings",
                         "CONFIG_ZMK_STUDIO=y",
-                        "CONFIG_ZMK_TEMPLATE_FEATURE=y",
-                        "CONFIG_ZMK_TEMPLATE_FEATURE_STUDIO_RPC=y",
+                        "CONFIG_ZMK_DEFAULT_LAYER=y",
+                        "CONFIG_ZMK_DEFAULT_LAYER_STUDIO_RPC=y",
                         "CONFIG_ZMK_CUSTOM_SETTINGS=y",
                         "CONFIG_ZMK_CUSTOM_SETTINGS_STUDIO_RPC=y",
                         "CONFIG_ZMK_STUDIO_RPC_RX_BUF_SIZE=128",
                         "CONFIG_ZMK_LOW_PRIORITY_THREAD_STACK_SIZE=2048",
+                    ],
+                    device=[],
+                ),
+                "default_layer_board_full": ConfigAndDeviceTree(
+                    config=[
+                        # Verify that zmk-feature-os-detection is present and enabled
+                        "zmk-feature-os-detection",
+                        "CONFIG_ZMK_STUDIO=y",
+                        "CONFIG_ZMK_DEFAULT_LAYER=y",
+                        "CONFIG_ZMK_DEFAULT_LAYER_STUDIO_RPC=y",
+                        "CONFIG_ZMK_CUSTOM_SETTINGS=y",
+                        "CONFIG_ZMK_DEFAULT_LAYER_OS_DETECTION=y",
+                        "CONFIG_ZMK_OS_DETECTION=y",
+                        "CONFIG_ZMK_OS_DETECTION_USB=y",
+                        "CONFIG_ZMK_OS_DETECTION_BLE=y",
                     ],
                     device=[],
                 ),

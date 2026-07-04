@@ -1,0 +1,19 @@
+/*
+* Copyright (c) 2024 The ZMK Contributors
+*
+* SPDX-License-Identifier: MIT
+*/
+#include <dt-bindings/zmk/behaviors.h>
+
+/ {
+	behaviors {
+    #if ZMK_BEHAVIOR_OMIT(DEFAULT_LAYER)
+		/omit-if-no-ref/
+    #endif
+		df: default_layer {
+			compatible = "zmk,behavior-default-layer";
+			#binding-cells = <2>;
+			display-name = "Change Default Layer";
+		};
+	};
+};

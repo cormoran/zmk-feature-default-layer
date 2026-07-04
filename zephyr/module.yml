@@ -1,11 +1,9 @@
-# Delete all unused properties.
-
 # Give your module a name
-name: zmk-module-template-rename-please
+name: zmk-feature-default-layer
 build:
-  # List your dependencies
-  # depends:
-  #  - zmk-example-dependency
+  depends:
+    - zmk-feature-custom-settings
+    - zmk-feature-os-detection
   # Folder containing a "CMakeLists.txt" (. = root)
   cmake: .
   # Kconfig filepath
@@ -16,4 +14,4 @@ build:
     # Folder containing a "dts" folder (. = root)
     dts_root: .
     # Folder containing a "snippets" folder (. = root)
-    snippet_root:  .
+    snippet_root: .

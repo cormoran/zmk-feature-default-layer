@@ -1,0 +1,17 @@
+pressed: position 0 keycode 0x70004
+released: position 0 keycode 0x70004
+default-layer command=select target=endpoint index=0 from=-1 to=1
+default-layer apply reason=update endpoint=None index=0 configured=1 target=1 global=0
+default-layer active endpoint=None index=0 layer=1
+pressed: position 0 keycode 0x70008
+released: position 0 keycode 0x70008
+default-layer command=select target=endpoint index=0 from=1 to=2
+default-layer apply reason=update endpoint=None index=0 configured=2 target=2 global=0
+default-layer active endpoint=None index=0 layer=2
+pressed: position 0 keycode 0x7000C
+released: position 0 keycode 0x7000C
+default-layer command=select target=endpoint index=0 from=2 to=0
+default-layer apply reason=update endpoint=None index=0 configured=0 target=0 global=0
+default-layer active endpoint=None index=0 layer=0
+pressed: position 0 keycode 0x70004
+released: position 0 keycode 0x70004

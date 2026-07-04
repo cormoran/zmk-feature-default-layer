@@ -1,21 +1,21 @@
 include:
-  - artifact: module_template_board_feature_disabled
+  - artifact: default_layer_board_disabled
     board: xiao_ble//zmk
     shield: tester_xiao
 
-  - artifact: module_template_board_with_rpc
+  - artifact: default_layer_board_without_rpc
     board: xiao_ble//zmk
     shield: tester_xiao
-    cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_TEMPLATE_FEATURE=y -DCONFIG_ZMK_TEMPLATE_FEATURE_STUDIO_RPC=y
+    cmake-args: -DCONFIG_ZMK_DEFAULT_LAYER=y -DCONFIG_ZMK_DEFAULT_LAYER_MAX_INDEX=3
+
+  - artifact: default_layer_board_with_rpc
+    board: xiao_ble//zmk
+    shield: tester_xiao
+    cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_DEFAULT_LAYER=y -DCONFIG_ZMK_DEFAULT_LAYER_MAX_INDEX=3 -DCONFIG_ZMK_DEFAULT_LAYER_STUDIO_RPC=y -DCONFIG_ZMK_CUSTOM_SETTINGS=y -DCONFIG_ZMK_CUSTOM_SETTINGS_STUDIO_RPC=y
     snippet: studio-rpc-usb-uart
 
-  - artifact: module_template_board_without_rpc
+  - artifact: default_layer_board_full
     board: xiao_ble//zmk
     shield: tester_xiao
-    cmake-args: -DCONFIG_ZMK_TEMPLATE_FEATURE=y
-
-  - artifact: custom_settings_board
-    board: xiao_ble//zmk
-    shield: tester_xiao
-    cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_TEMPLATE_FEATURE=y -DCONFIG_ZMK_TEMPLATE_FEATURE_STUDIO_RPC=y -DCONFIG_ZMK_CUSTOM_SETTINGS=y -DCONFIG_ZMK_CUSTOM_SETTINGS_STUDIO_RPC=y
+    cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_DEFAULT_LAYER=y -DCONFIG_ZMK_DEFAULT_LAYER_MAX_INDEX=3 -DCONFIG_ZMK_DEFAULT_LAYER_STUDIO_RPC=y -DCONFIG_ZMK_CUSTOM_SETTINGS=y -DCONFIG_ZMK_CUSTOM_SETTINGS_STUDIO_RPC=y -DCONFIG_ZMK_DEFAULT_LAYER_OS_DETECTION=y -DCONFIG_ZMK_OS_DETECTION=y -DCONFIG_ZMK_OS_DETECTION_USB=y -DCONFIG_ZMK_OS_DETECTION_BLE=y
     snippet: studio-rpc-usb-uart

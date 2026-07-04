@@ -1,0 +1,2 @@
+s/.*default-layer /default-layer /p
+s/zmk: on_keymap_binding_//p

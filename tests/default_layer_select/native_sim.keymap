@@ -1,0 +1,55 @@
+#include <dt-bindings/zmk/keys.h>
+#include <behaviors.dtsi>
+#include <dt-bindings/zmk/kscan_mock.h>
+#include <behaviors/default_layer.dtsi>
+#include <dt-bindings/zmk_behavior_default_layer/default_layer.h>
+
+/ {
+	keymap {
+		compatible = "zmk,keymap";
+
+		default_layer {
+			bindings = <
+				&kp A  &df DF_SEL 1  &df DF_SEL 2  &df DF_SEL 0
+			>;
+		};
+
+		alt_layer_1 {
+			bindings = <
+				&kp E  &trans  &trans  &trans
+			>;
+		};
+
+		alt_layer_2 {
+			bindings = <
+				&kp I  &trans  &trans  &trans
+			>;
+		};
+	};
+};
+
+&kscan {
+	events = <
+		/* Press A on layer 0 (default) */
+		ZMK_MOCK_PRESS(0,0,10)
+		ZMK_MOCK_RELEASE(0,0,10)
+		/* Select layer 1 as default */
+		ZMK_MOCK_PRESS(0,1,10)
+		ZMK_MOCK_RELEASE(0,1,10)
+		/* Press key — now layer 1 active, should produce E */
+		ZMK_MOCK_PRESS(0,0,10)
+		ZMK_MOCK_RELEASE(0,0,10)
+		/* Select layer 2 as default */
+		ZMK_MOCK_PRESS(0,2,10)
+		ZMK_MOCK_RELEASE(0,2,10)
+		/* Press key — now layer 2 active, should produce I */
+		ZMK_MOCK_PRESS(0,0,10)
+		ZMK_MOCK_RELEASE(0,0,10)
+		/* Select layer 0 as default */
+		ZMK_MOCK_PRESS(0,3,10)
+		ZMK_MOCK_RELEASE(0,3,10)
+		/* Press key — back to layer 0, should produce A */
+		ZMK_MOCK_PRESS(0,0,10)
+		ZMK_MOCK_RELEASE(0,0,10)
+	>;
+};

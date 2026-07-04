@@ -7,3 +7,7 @@ manifest:
     - name: zmk-feature-custom-settings
       url: https://github.com/cormoran/zmk-feature-custom-settings
       revision: main
+    # TODO: switch to `revision: main` once cormoran/zmk-feature-os-detection#1 merges.
+    - name: zmk-feature-os-detection
+      url: https://github.com/cormoran/zmk-feature-os-detection
+      revision: codex/init-os-detection
