@@ -61,7 +61,7 @@ static void handle_get_state(cormoran_default_layer_StateResponse *out) {
     /* Skip index 0 (the "no endpoint selected" slot) - it isn't a
      * user-configurable connection. */
     for (uint32_t i = ZMK_ENDPOINT_NONE_COUNT;
-        i < ZMK_ENDPOINT_COUNT && out->endpoints_count < max_endpoints; i++) {
+         i < ZMK_ENDPOINT_COUNT && out->endpoints_count < max_endpoints; i++) {
         cormoran_default_layer_EndpointState *entry = &out->endpoints[out->endpoints_count++];
         entry->index = i;
         describe_endpoint(i, &entry->is_usb, &entry->ble_profile_index);

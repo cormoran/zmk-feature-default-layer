@@ -1,7 +1,8 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { setupZMKMocks } from "@cormoran/zmk-studio-react-hook/testing";
-import App from "../src/App";
+import App, { SUBSYSTEM_IDENTIFIER } from "../src/App";
+import { Response } from "../src/proto/cormoran/default-layer/default_layer";
 
 // Mock the ZMK client
 jest.mock("@zmkfirmware/zmk-studio-ts-client", () => ({
@@ -18,8 +19,12 @@ describe("App Component", () => {
     it("should render the application header", () => {
       render(<App />);
 
-      expect(screen.getByText(/ZMK Module Template/i)).toBeInTheDocument();
-      expect(screen.getByText(/Custom Studio RPC Demo/i)).toBeInTheDocument();
+      expect(screen.getByText(/ZMK Default Layer/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          /Per-connection and per-OS default layer configuration/i
+        )
+      ).toBeInTheDocument();
     });
 
     it("should render connection button when disconnected", () => {
@@ -31,7 +36,9 @@ describe("App Component", () => {
     it("should render footer", () => {
       render(<App />);
 
-      expect(screen.getByText(/Template Module/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/Per-endpoint and per-OS default layer/i)
+      ).toBeInTheDocument();
     });
   });
 
@@ -40,12 +47,28 @@ describe("App Component", () => {
 
     beforeEach(() => {
       mocks = setupZMKMocks();
+      const payload = Response.encode(
+        Response.create({
+          state: {
+            endpoints: [],
+            osLayers: [],
+            activeEndpointIndex: 0,
+            currentOs: 0,
+            resolvedLayer: 0,
+            layerCount: 1,
+            osDetectionAvailable: false,
+          },
+        })
+      ).finish();
+      (mocks.call_rpc as jest.Mock).mockResolvedValue({
+        custom: { call: { payload } },
+      });
     });
 
     it("should connect to device when connect button is clicked", async () => {
       mocks.mockSuccessfulConnection({
         deviceName: "Test Keyboard",
-        subsystems: ["your_name__template"],
+        subsystems: [SUBSYSTEM_IDENTIFIER],
       });
 
       const { connect: serial_connect } =
@@ -67,7 +90,9 @@ describe("App Component", () => {
       });
 
       expect(screen.getByText(/Disconnect/i)).toBeInTheDocument();
-      expect(screen.getByText(/RPC Test/i)).toBeInTheDocument();
+      expect(
+        screen.getByRole("heading", { level: 2, name: /Default Layer/i })
+      ).toBeInTheDocument();
     });
   });
 });

@@ -1,15 +1,9 @@
-# ZMK Module Template - Web Frontend
+# zmk-feature-default-layer - Web Frontend
 
-This is a minimal web application template for interacting with ZMK firmware
-modules that implement custom Studio RPC subsystems.
-
-## Features
-
-- **Device Connection**: Connect to ZMK devices via Bluetooth (GATT) or Serial
-- **Custom RPC**: Communicate with your custom firmware module using protobuf
-- **React + TypeScript**: Modern web development with Vite for fast builds
-- **react-zmk-studio**: Uses the `@cormoran/zmk-studio-react-hook` library for
-  simplified ZMK integration
+Web UI for configuring `zmk-feature-default-layer` over the unofficial custom
+ZMK Studio RPC protocol: pick a default layer per connection (USB / each BLE
+profile), or set it to "OS detection" and let it follow a per-OS mapping
+resolved by [zmk-feature-os-detection](https://github.com/cormoran/zmk-feature-os-detection).
 
 ## Quick Start
 
@@ -35,22 +29,25 @@ npm test
 ```
 src/
 ├── main.tsx              # React entry point
-├── App.tsx               # Main application with connection UI
+├── App.tsx               # Connection UI + DefaultLayerPanel
 ├── App.css               # Styles
 └── proto/                # Generated protobuf TypeScript types
-    └── your-name/template/
-        └── template.ts
+    └── cormoran/default-layer/
+        └── default_layer.ts
 
 test/
-├── App.spec.tsx              # Tests for App component
-└── RPCTestSection.spec.tsx   # Tests for RPC functionality
+├── App.spec.tsx                # Tests for App component / connection flow
+└── DefaultLayerPanel.spec.tsx  # Tests for the endpoint/OS layer panel
 ```
 
 ## How It Works
 
 ### 1. Protocol Definition
 
-The protobuf schema is defined in `../proto/your-name/template/template.proto`.
+The protobuf schema is defined in `../proto/cormoran/default-layer/default_layer.proto`.
+`value` fields share one sentinel encoding: `>=0` is a keymap layer index,
+`-1` means unset, and `-2` (endpoint values only) means "resolve via the
+per-OS mapping".
 
 ### 2. Code Generation
 
@@ -64,18 +61,11 @@ This runs `buf generate` which uses the configuration in `buf.gen.yaml`.
 
 ### 3. Using react-zmk-studio
 
-The app uses the `@cormoran/zmk-studio-react-hook` library:
-
 ```typescript
 import { useZMKApp, ZMKCustomSubsystem } from "@cormoran/zmk-studio-react-hook";
 
-// Connect to device
 const { state, connect, findSubsystem, isConnected } = useZMKApp();
-
-// Find your subsystem
-const subsystem = findSubsystem("your_name__template");
-
-// Create service and make RPC calls
+const subsystem = findSubsystem("cormoran__default_layer");
 const service = new ZMKCustomSubsystem(state.connection, subsystem.index);
 const response = await service.callRPC(payload);
 ```
@@ -92,38 +82,3 @@ npm run test:watch
 # Run tests with coverage
 npm run test:coverage
 ```
-
-### Writing Tests
-
-Use the test helpers from `@cormoran/zmk-studio-react-hook/testing`:
-
-```typescript
-import {
-  createConnectedMockZMKApp,
-  ZMKAppProvider,
-} from "@cormoran/zmk-studio-react-hook/testing";
-
-const mockZMKApp = createConnectedMockZMKApp({
-  deviceName: "Test Device",
-  subsystems: ["your_name__template"],
-});
-
-render(
-  <ZMKAppProvider value={mockZMKApp}>
-    <YourComponent />
-  </ZMKAppProvider>
-);
-```
-
-## Customization
-
-To adapt this template for your own ZMK module:
-
-1. **Update the proto file**: Modify `../proto/your-name/template/template.proto` with
-   your message types
-2. **Regenerate types**: Run `npm run generate`
-3. **Update subsystem identifier**: Change `SUBSYSTEM_IDENTIFIER` in `App.tsx`
-   to match your firmware registration
-4. **Update RPC logic**: Modify the request/response handling in `App.tsx`
-5. **Update tests**: Modify tests to match your custom subsystem identifier and
-   functionality

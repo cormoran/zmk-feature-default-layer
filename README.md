@@ -1,70 +1,99 @@
-# cormoran's ZMK Module Template for ZMK (with Custom Studio RPC)
+# zmk-feature-default-layer
 
-![ZMK Version](https://img.shields.io/badge/ZMK-master-blue)
-[![Test](https://github.com/cormoran/zmk-module-template/actions/workflows/zmk-module.yml/badge.svg?branch=main)](https://github.com/cormoran/zmk-module-template/actions/workflows/zmk-module.yml) [![Devcontainer](https://github.com/cormoran/zmk-module-template/actions/workflows/devcontainer.yml/badge.svg?branch=main)](https://github.com/cormoran/zmk-module-template/actions/workflows/devcontainer.yml)
+ZMK module to switch the default (always-on) layer depending on the
+currently connected endpoint (USB or a BLE profile) — and, optionally,
+depending on the detected host operating system.
 
-This repository contains a template for a ZMK module with Web UI using the **unofficial** custom ZMK Studio RPC protocol.
+Originally based on
+[elpekenin's ZMK PR #2222](https://github.com/zmkfirmware/zmk/pull/2222);
+this version adds runtime configuration via a Web UI, using the
+**unofficial** custom ZMK Studio RPC protocol.
 
-It's extended from ZMK official template with [zmk-west-commands](https://github.com/cormoran/zmk-west-commands), test code template, coding agent support, and custom Studio RPC protocol support.
+## Features
 
-## Summary
-
-This template includes:
-
-- **Firmware**: Sample custom Studio RPC handler (`src/studio/template_handler.c`)
-- **Protocol**: Protobuf definition (`proto/your-name/template/template.proto`)
-- **Web UI**: React + TypeScript app (`web/`) using [@cormoran/zmk-studio-react-hook](https://github.com/cormoran/react-zmk-studio)
-- **Tests**: Firmware unit tests (`tests/studio/`) and build tests (`tests/zmk-config/`)
-
-Read through the [ZMK Module Creation](https://zmk.dev/docs/development/module-creation) page for details on how to configure this template.
-
-## More Info
-
-For more info on modules, you can read through through the [Zephyr modules page](https://docs.zephyrproject.org/3.5.0/develop/modules.html) and [ZMK's page on using modules](https://zmk.dev/docs/features/modules). [Zephyr's west manifest page](https://docs.zephyrproject.org/3.5.0/develop/west/manifest.html#west-manifests) may also be of use.
+- **Per-connection default layer**: assign a default layer to each output
+  (USB, BLE profile 0-4). Switching connections automatically activates the
+  configured layer.
+- **Per-OS default layer**: assign a default layer per detected host OS
+  (Windows / macOS / Linux / Unknown), using
+  [zmk-feature-os-detection](https://github.com/cormoran/zmk-feature-os-detection).
+  Set a connection's mapping to "OS detection" to resolve its layer this way
+  instead of a fixed layer.
+- **Web UI**: configure both mappings from a browser over WebSerial — no
+  reflash needed to change layer assignments.
+- **`&df` keymap behavior** (unchanged from the original module): `&df DF_SEL
+  <layer>` sets the current connection's layer directly; `&df DF_INC` cycles
+  through the configured `[MIN_INDEX, MAX_INDEX]` range.
 
 ## Module User Guide
 
-1. Add dependency to your `config/west.yml`. Note: this module requires a patched ZMK with custom Studio RPC support.
+1. Add the dependency to your `config/west.yml`. This module requires the
+   patched `cormoran/zmk` fork with custom Studio RPC support, and depends on
+   `zmk-feature-custom-settings` (always) and `zmk-feature-os-detection`
+   (only needed for the per-OS feature — see its own west.yml import).
 
-   ```yml
+   ```yaml
    manifest:
-       remotes:
-           ...
-           - name: cormoran
-           url-base: https://github.com/cormoran
-       projects:
-           ...
-           - name: zmk-module-template
-           remote: cormoran
-           revision: main+custom-studio-protocol # or latest commit hash
-           import: true
-           ...
-           # Required: patched ZMK with custom Studio RPC support
-           - name: zmk
-           remote: cormoran
-           revision: main+custom-studio-protocol
-           import:
-               file: app/west.yml
+     remotes:
+       - name: cormoran
+         url-base: https://github.com/cormoran
+     projects:
+       - name: zmk-feature-default-layer
+         remote: cormoran
+         revision: main
+         import: true
+       # Required: patched ZMK with custom Studio RPC support
+       - name: zmk
+         remote: cormoran
+         revision: main+custom-studio-protocol
+         import:
+           file: app/west.yml
    ```
 
-2. Enable flags in your `config/<shield>.conf`
+2. Enable flags in your `config/<shield>.conf`:
 
    ```conf
-   CONFIG_ZMK_TEMPLATE_FEATURE=y
+   CONFIG_ZMK_DEFAULT_LAYER=y
+   CONFIG_ZMK_DEFAULT_LAYER_MAX_INDEX=<highest configurable layer index>
 
-   # Optionally enable custom Studio RPC
+   # Optionally enable the Web UI
    CONFIG_ZMK_STUDIO=y
-   CONFIG_ZMK_TEMPLATE_FEATURE_STUDIO_RPC=y
+   CONFIG_ZMK_DEFAULT_LAYER_STUDIO_RPC=y
    CONFIG_ZMK_CUSTOM_SETTINGS=y
    CONFIG_ZMK_CUSTOM_SETTINGS_STUDIO_RPC=y
    CONFIG_ZMK_STUDIO_RPC_RX_BUF_SIZE=128
    CONFIG_ZMK_LOW_PRIORITY_THREAD_STACK_SIZE=2048
+
+   # Optionally enable per-OS default layer (needs zmk-feature-os-detection)
+   CONFIG_ZMK_DEFAULT_LAYER_OS_DETECTION=y
+   CONFIG_ZMK_OS_DETECTION=y
+   CONFIG_ZMK_OS_DETECTION_USB=y
+   CONFIG_ZMK_OS_DETECTION_BLE=y
    ```
 
-3. Implement your custom protocol by editing:
-   - `proto/your-name/template/template.proto` — message types
-   - `src/studio/template_handler.c` — firmware RPC handler
-   - `web/src/App.tsx` — web UI
+   Do not also enable `zmk-feature-os-detection`'s own
+   `CONFIG_ZMK_OS_DETECTION_LAYER_*` auto-switch options together with this
+   module — both would compete to activate/deactivate layers.
+
+3. Optionally add `&df` to your keymap if you want to change the mapping
+   from the keyboard itself, in addition to the Web UI:
+
+   ```dts
+   #include <behaviors/default_layer.dtsi>
+   #include <dt-bindings/zmk_behavior_default_layer/default_layer.h>
+
+   / {
+       keymap {
+           default_layer {
+               bindings = <&df DF_INC>;
+           };
+       };
+   };
+   ```
+
+4. Connect over WebSerial from the [Web UI](https://cormoran.github.io/zmk-feature-default-layer/)
+   to assign a layer (or "OS detection") to each connection, and a layer to
+   each OS.
 
 ### Web UI
 

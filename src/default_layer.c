@@ -41,12 +41,12 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 #if IS_ENABLED(CONFIG_ZMK_CUSTOM_SETTINGS)
 
-#define DEFAULT_LAYER_ENDPOINT_SETTING(_i)                                                        \
-    ZMK_CUSTOM_SETTING_ARRAY_ELEMENT_DEFINE(                                                      \
-        default_layer_endpoint_##_i, DEFAULT_LAYER_SUBSYSTEM_ID, "endpoint_layer", _i,            \
-        ZMK_ENDPOINT_COUNT, ZMK_CUSTOM_SETTING_VALUE_TYPE_INT32,                                  \
-        ZMK_CUSTOM_SETTING_VALUE_INT32(ZMK_DEFAULT_LAYER_UNSET),                                  \
-        ZMK_CUSTOM_SETTING_CONFIDENTIALITY_RPC_PUBLIC, ZMK_CUSTOM_SETTING_PERMISSION_UNSECURE,    \
+#define DEFAULT_LAYER_ENDPOINT_SETTING(_i)                                                         \
+    ZMK_CUSTOM_SETTING_ARRAY_ELEMENT_DEFINE(                                                       \
+        default_layer_endpoint_##_i, DEFAULT_LAYER_SUBSYSTEM_ID, "endpoint_layer", _i,             \
+        ZMK_ENDPOINT_COUNT, ZMK_CUSTOM_SETTING_VALUE_TYPE_INT32,                                   \
+        ZMK_CUSTOM_SETTING_VALUE_INT32(ZMK_DEFAULT_LAYER_UNSET),                                   \
+        ZMK_CUSTOM_SETTING_CONFIDENTIALITY_RPC_PUBLIC, ZMK_CUSTOM_SETTING_PERMISSION_UNSECURE,     \
         ZMK_CUSTOM_SETTING_PERMISSION_UNSECURE, ZMK_CUSTOM_SETTING_NO_CONSTRAINT)
 
 /* ZMK_ENDPOINT_COUNT = 1 (none) + up to 1 (USB) + up to 8 (BLE profiles). */
@@ -83,12 +83,12 @@ DEFAULT_LAYER_ENDPOINT_SETTING(9);
 BUILD_ASSERT(ZMK_ENDPOINT_COUNT <= 10,
              "zmk-feature-default-layer only defines settings for up to 10 endpoints");
 
-#define DEFAULT_LAYER_OS_SETTING(_i)                                                              \
-    ZMK_CUSTOM_SETTING_ARRAY_ELEMENT_DEFINE(                                                      \
-        default_layer_os_##_i, DEFAULT_LAYER_SUBSYSTEM_ID, "os_layer", _i,                        \
-        DEFAULT_LAYER_OS_COUNT, ZMK_CUSTOM_SETTING_VALUE_TYPE_INT32,                              \
-        ZMK_CUSTOM_SETTING_VALUE_INT32(ZMK_DEFAULT_LAYER_UNSET),                                  \
-        ZMK_CUSTOM_SETTING_CONFIDENTIALITY_RPC_PUBLIC, ZMK_CUSTOM_SETTING_PERMISSION_UNSECURE,    \
+#define DEFAULT_LAYER_OS_SETTING(_i)                                                               \
+    ZMK_CUSTOM_SETTING_ARRAY_ELEMENT_DEFINE(                                                       \
+        default_layer_os_##_i, DEFAULT_LAYER_SUBSYSTEM_ID, "os_layer", _i, DEFAULT_LAYER_OS_COUNT, \
+        ZMK_CUSTOM_SETTING_VALUE_TYPE_INT32,                                                       \
+        ZMK_CUSTOM_SETTING_VALUE_INT32(ZMK_DEFAULT_LAYER_UNSET),                                   \
+        ZMK_CUSTOM_SETTING_CONFIDENTIALITY_RPC_PUBLIC, ZMK_CUSTOM_SETTING_PERMISSION_UNSECURE,     \
         ZMK_CUSTOM_SETTING_PERMISSION_UNSECURE, ZMK_CUSTOM_SETTING_NO_CONSTRAINT)
 
 DEFAULT_LAYER_OS_SETTING(0);
