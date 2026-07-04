@@ -152,8 +152,13 @@ Split: compile the whole module only for central/non-split, exactly like v1's
 - `DF_INC` → cycle current endpoint's value through `[MIN_INDEX..MAX_INDEX]`
   (numeric layers only; skip OS_DETECTION/UNSET — cycling into OS detection
   from a key would be surprising).
-- Keep DT binding, dtsi node, dt-bindings header from v1; **fix the v1 header
-  bug**: `#define DF_INC DEFAULT_LAYER_CMD_NEXT 1` has a stray trailing `1`.
+- Keep DT binding, dtsi node, dt-bindings header from v1 as-is. `#define DF_INC
+  DEFAULT_LAYER_CMD_NEXT 1` looks like a stray trailing token but is NOT a bug:
+  `&df` has `#binding-cells = <2>`, so bare `&df DF_INC` in a keymap must
+  expand to two cells; the `1` is a required (unused) param2 placeholder.
+  (An earlier draft of this doc called it a bug and "fixed" it — that broke
+  devicetree parsing with "missing data after phandle in bindings". Verified
+  by running the ported native_sim tests.)
 - Keep behavior metadata (`CONFIG_ZMK_BEHAVIOR_METADATA`) from v1.
 
 ## 7. Kconfig
@@ -359,7 +364,7 @@ Commit at each milestone; **never push, never `gh`**.
 - **Phase A — template init:** execute the AGENTS.md initialization checklist
   with the names from §3 (rename proto path/files, handler, module.yml name,
   vite base, test.py build-dir, README stub, delete AGENTS.md init section).
-  Port v1's dts/, dt-bindings header (with the DF_INC fix), Kconfig skeleton.
+  Port v1's dts/, dt-bindings header (unchanged, see §6 on DF_INC), Kconfig skeleton.
   Gate: `python3 -m unittest` green (template sample still compiles renamed).
 - **Phase B — core + settings + behavior:** in-memory arrays, custom-settings
   entries, unified setter, resolution engine, event listeners, boot-ordering
