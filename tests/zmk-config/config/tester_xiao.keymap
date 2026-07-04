@@ -1,0 +1,45 @@
+/*
+ * Phase E: override tester_xiao's own keymap (shipped in the ZMK fork) so
+ * the hardware-validation build has more than one layer to switch between,
+ * and can unlock ZMK Studio.
+ *
+ * A `.keymap` file placed in the ZMK_CONFIG config directory (this file)
+ * takes precedence over the shield's own `.keymap` - ZMK's
+ * `boards/post_boards_shields.cmake` builds `KEYMAP_DIRS` with `ZMK_CONFIG`
+ * prepended ahead of the shield/board directories, then picks the first
+ * `<candidate>.keymap` match.
+ *
+ * tester_xiao's physical layout (tester_xiao-layouts.dtsi) declares 11 keys,
+ * so every layer here must keep all 11 binding entries (position 0 is
+ * `&studio_unlock`, was `&pin0`) - ZMK's keymap init indexes bindings by
+ * physical-layout key count, not by what's actually wired, and a shorter
+ * bindings list reads past the end of the DTS-sized array and hard-faults
+ * during boot (do_device_init). See
+ * zmk-driver-pmw3610-with-custom-studio-rpc's own tester_xiao.keymap for the
+ * same gotcha.
+ */
+
+#include <behaviors.dtsi>
+#include <dt-bindings/zmk/keys.h>
+
+/ {
+    keymap {
+        compatible = "zmk,keymap";
+
+        default_layer {
+            bindings = <&studio_unlock &trans &trans &trans &trans &trans &trans &trans &trans &trans &trans>;
+        };
+
+        alt_layer_1 {
+            bindings = <&trans &trans &trans &trans &trans &trans &trans &trans &trans &trans &trans>;
+        };
+
+        alt_layer_2 {
+            bindings = <&trans &trans &trans &trans &trans &trans &trans &trans &trans &trans &trans>;
+        };
+
+        alt_layer_3 {
+            bindings = <&trans &trans &trans &trans &trans &trans &trans &trans &trans &trans &trans>;
+        };
+    };
+};

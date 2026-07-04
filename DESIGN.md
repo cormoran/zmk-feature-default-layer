@@ -391,3 +391,86 @@ Commit at each milestone; **never push, never `gh`**.
 - Layer names in our own proto (use core Studio keymap API from the web side).
 - Per-profile OS override UI (belongs to zmk-feature-os-detection's own UI).
 - iOS as a distinct OS (os-detection cannot distinguish it from macOS today).
+- **Known coverage gap**: no native_sim test exercises the OS_DETECTION
+  resolution path (endpoint set to -2 + `zmk_os_changed`). The only way to
+  set that state is through the RPC setters (no keymap path), so such a test
+  would need test-only init code driving `zmk_default_layer_set_endpoint`/
+  `_set_os` directly plus `CONFIG_ZMK_OS_DETECTION_TEST_INJECT` from
+  zmk-feature-os-detection. Skipped in favor of the real-hardware validation
+  in §14, which exercises the identical code path end-to-end including real
+  USB OS fingerprinting; worth adding later for CI regression coverage.
+
+## 14. Validation log (Phase E, real hardware)
+
+Ran 2026-07-04 on this workspace's rig (XIAO nRF52840 + J-Link, see
+`skills/develop-zmk-module/references/hardware-rig.md`).
+
+**Build**: manual `west build` of `xiao_ble//zmk` + `tester_xiao` shield,
+`studio-rpc-usb-uart` snippet, `ZMK_CONFIG=tests/zmk-config/config`, with
+`ZMK_DEFAULT_LAYER(_MAX_INDEX=3)`, `_STUDIO_RPC`, `CUSTOM_SETTINGS(_STUDIO_RPC)`,
+`ZMK_DEFAULT_LAYER_OS_DETECTION`, `ZMK_OS_DETECTION(_USB, _BLE)`, plus
+`CONFIG_ZMK_LOG_LEVEL_DBG`/`CONFIG_LOG_BACKEND_RTT` for RTT logging. Added
+`tests/zmk-config/config/tester_xiao.keymap` (committed) so the shared
+`tester_xiao` shield has 4 layers to switch between instead of 1, following
+`zmk-driver-pmw3610-with-custom-studio-rpc`'s identical precedent (keep all
+11 physical-layout binding entries per layer or boot hard-faults).
+
+**Flashing**: this unit's flash below 0x27000 holds stale firmware from a
+different project, so a normal `xiao_ble` build (loaded at 0x27000) never
+runs when SWD-flashed directly. Worked around with a rig-local (uncommitted)
+devicetree overlay moving `code_partition` to start at `0x0`
+(`-DDTC_OVERLAY_FILE=...`), confirmed by the `.hex`'s first record starting
+at address 0 and `CONFIG_FLASH_LOAD_OFFSET=0x0` in `.config`. Flashed via
+`JLinkExe` `loadfile` + `r` + `go` (never `erase`, per the hardware-rig note).
+J-Link `regs`/`mem32` after flashing showed the CPU actively executing deep
+in application code (large cycle count, plausible PC), not looping at the
+reset vector — ruling out the documented "stale flash" HardFault-loop failure
+mode. RTT (once pointed at the `_SEGGER_RTT` symbol's address from
+`arm-zephyr-eabi-nm`, since blind auto-search didn't find the control block)
+showed live BLE connect/disconnect activity, confirming the firmware runs
+continuously post-boot.
+
+**Studio RPC** (`tools/zmk-studio-rpc --transport pyusb`, no `/dev/ttyACM*` in
+this sandbox): `info` returned the real device name; `custom-list` showed
+both `cormoran__default_layer` and `cormoran_custom_settings` registered
+(indices 0/1) — `cormoran__os_detection`'s own RPC subsystem was correctly
+absent since `CONFIG_ZMK_OS_DETECTION_STUDIO_RPC` wasn't enabled for this
+build (not needed; only its C API/event are consumed).
+
+The bundled CLI's `custom-call` crashes on this module's own proto
+(`ModuleNotFoundError: No module named 'cormoran.default-layer'`): its
+`ProtoBundle` mirrors the `.proto` file's directory path into the generated
+Python package path, and `default-layer` (hyphenated, matching this
+template's own `<name>/<module>/` path convention) isn't a valid Python
+package segment. Worked around with an ad-hoc script compiling the same
+`.proto` with `-I` set to its own parent directory instead (flat
+`default_layer_pb2`, bypassing the buggy path-mirroring), reusing the CLI's
+`StudioClient`/`PyUSBCDCTransport`/`ProtoBundle.from_workspace` for
+everything else. This is a bug in `tools/zmk_studio_rpc/proto.py`
+(`_guess_custom_include_dir`), not in this module; worth fixing upstream in
+the workspace's tools since it'll hit every module using the documented
+hyphenated proto-path convention.
+
+Exercised, all correct:
+- `GetState` on a fresh boot: 6 endpoints (USB + 5 BLE profiles), all `-1`
+  (unset); 4 OS layers, all `-1`; `active_endpoint_index=1` (USB, matching
+  the USB-UART transport in use); **`current_os=2` (macOS)** - real USB OS
+  fingerprinting via zmk-feature-os-detection detected the actual connected
+  host live, unprompted.
+- `SetEndpointLayer(endpoint=1 (USB), value=2)` → response echoed
+  `value=2, resolved_layer=2`.
+- `SetEndpointLayer(endpoint=1, value=-2 (OS_DETECTION))` +
+  `SetOsLayer(os=2 (macOS), value=1)` → response showed
+  `resolved_layer=1` - the OS-detection resolution path (endpoint → current
+  OS → per-OS layer) works correctly end-to-end on real hardware.
+- Soft-reset via J-Link (`r`+`go`, no reflash) then `GetState` again: endpoint
+  value `-2` and `os_layer[2]=1` both survived, `resolved_layer` was already
+  `1` immediately after boot - confirms custom-settings persistence to real
+  flash and the ~200ms deferred init-apply both work.
+
+Not exercised: physical keypresses (no switches wired to this bare
+XIAO+J-Link rig, only Studio RPC and RTT logs) and the `&df` keymap behavior
+on hardware (already covered by native_sim `default_layer_select`/`_increment`,
+which share the same resolve/apply functions verified above over real RPC).
+Left the device in the `endpoint[USB]=OS_DETECTION, os_layer[macOS]=1` test
+state; harmless, matches nothing this rig depends on elsewhere.
