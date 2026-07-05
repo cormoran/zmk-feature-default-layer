@@ -3,4 +3,4 @@
 
 cormoran.default_layer.ErrorResponse.message      max_size:64
 cormoran.default_layer.StateResponse.endpoints    max_count:10
-cormoran.default_layer.StateResponse.os_layers    max_count:4
+cormoran.default_layer.StateResponse.os_layers    max_count:6

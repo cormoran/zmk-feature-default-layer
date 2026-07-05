@@ -69,7 +69,9 @@ static void handle_get_state(cormoran_default_layer_StateResponse *out) {
     }
 
     out->os_layers_count = 0;
-    for (uint32_t os = 0; os < 4 && out->os_layers_count < ARRAY_SIZE(out->os_layers); os++) {
+    for (uint32_t os = 0;
+         os < ZMK_DEFAULT_LAYER_OS_COUNT && out->os_layers_count < ARRAY_SIZE(out->os_layers);
+         os++) {
         cormoran_default_layer_OsLayerState *entry = &out->os_layers[out->os_layers_count++];
         entry->os = os;
         entry->value = zmk_default_layer_get_os(os);
@@ -101,7 +103,7 @@ static int handle_set_endpoint_layer(const cormoran_default_layer_SetEndpointLay
 
 static int handle_set_os_layer(const cormoran_default_layer_SetOsLayerRequest *req,
                                cormoran_default_layer_Response *resp) {
-    if (req->os >= 4) {
+    if (req->os >= ZMK_DEFAULT_LAYER_OS_COUNT) {
         return -EINVAL;
     }
 

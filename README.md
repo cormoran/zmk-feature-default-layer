@@ -15,7 +15,7 @@ this version adds runtime configuration via a Web UI, using the
   (USB, BLE profile 0-4). Switching connections automatically activates the
   configured layer.
 - **Per-OS default layer**: assign a default layer per detected host OS
-  (Windows / macOS / Linux / Unknown), using
+  (Windows / macOS / Linux / iOS / Android / Unknown), using
   [zmk-feature-os-detection](https://github.com/cormoran/zmk-feature-os-detection).
   Set a connection's mapping to "OS detection" to resolve its layer this way
   instead of a fixed layer.

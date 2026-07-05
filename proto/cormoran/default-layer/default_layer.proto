@@ -14,8 +14,8 @@ message SetEndpointLayerRequest {
 }
 
 // os: enum zmk_os from zmk-feature-os-detection (0=unknown, 1=windows,
-// 2=macos, 3=linux). value must not be -2 (OS detection is not a valid
-// value inside the per-OS mapping itself).
+// 2=macos, 3=linux, 4=ios, 5=android). value must not be -2 (OS detection is
+// not a valid value inside the per-OS mapping itself).
 message SetOsLayerRequest {
     uint32 os = 1;
     int32 value = 2;

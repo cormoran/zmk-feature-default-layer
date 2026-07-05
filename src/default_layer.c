@@ -27,10 +27,6 @@
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 #define DEFAULT_LAYER_SUBSYSTEM_ID "cormoran__default_layer"
-/* enum zmk_os has 4 values (unknown/windows/macos/linux); kept as a plain
- * count here so this file does not need os_detection.h when
- * CONFIG_ZMK_DEFAULT_LAYER_OS_DETECTION is disabled. */
-#define DEFAULT_LAYER_OS_COUNT 4
 
 /*
  * Storage: when zmk-feature-custom-settings is enabled it is the only source
@@ -85,8 +81,8 @@ BUILD_ASSERT(ZMK_ENDPOINT_COUNT <= 10,
 
 #define DEFAULT_LAYER_OS_SETTING(_i)                                                               \
     ZMK_CUSTOM_SETTING_ARRAY_ELEMENT_DEFINE(                                                       \
-        default_layer_os_##_i, DEFAULT_LAYER_SUBSYSTEM_ID, "os_layer", _i, DEFAULT_LAYER_OS_COUNT, \
-        ZMK_CUSTOM_SETTING_VALUE_TYPE_INT32,                                                       \
+        default_layer_os_##_i, DEFAULT_LAYER_SUBSYSTEM_ID, "os_layer", _i,                         \
+        ZMK_DEFAULT_LAYER_OS_COUNT, ZMK_CUSTOM_SETTING_VALUE_TYPE_INT32,                           \
         ZMK_CUSTOM_SETTING_VALUE_INT32(ZMK_DEFAULT_LAYER_UNSET),                                   \
         ZMK_CUSTOM_SETTING_CONFIDENTIALITY_RPC_PUBLIC, ZMK_CUSTOM_SETTING_PERMISSION_UNSECURE,     \
         ZMK_CUSTOM_SETTING_PERMISSION_UNSECURE, ZMK_CUSTOM_SETTING_NO_CONSTRAINT)
@@ -95,11 +91,13 @@ DEFAULT_LAYER_OS_SETTING(0);
 DEFAULT_LAYER_OS_SETTING(1);
 DEFAULT_LAYER_OS_SETTING(2);
 DEFAULT_LAYER_OS_SETTING(3);
+DEFAULT_LAYER_OS_SETTING(4);
+DEFAULT_LAYER_OS_SETTING(5);
 
 #else /* !CONFIG_ZMK_CUSTOM_SETTINGS */
 
 static int32_t fallback_endpoint_layer[ZMK_ENDPOINT_COUNT];
-static int32_t fallback_os_layer[DEFAULT_LAYER_OS_COUNT];
+static int32_t fallback_os_layer[ZMK_DEFAULT_LAYER_OS_COUNT];
 
 #endif
 
@@ -128,7 +126,7 @@ int32_t zmk_default_layer_get_os(uint8_t os) {
     }
     return value.int32_value;
 #else
-    if (os >= DEFAULT_LAYER_OS_COUNT) {
+    if (os >= ZMK_DEFAULT_LAYER_OS_COUNT) {
         return ZMK_DEFAULT_LAYER_UNSET;
     }
     return fallback_os_layer[os];
@@ -176,7 +174,7 @@ int zmk_default_layer_set_endpoint(uint8_t endpoint_index, int32_t value, const 
 }
 
 int zmk_default_layer_set_os(uint8_t os, int32_t value, const char *command) {
-    if (os >= DEFAULT_LAYER_OS_COUNT) {
+    if (os >= ZMK_DEFAULT_LAYER_OS_COUNT) {
         return -EINVAL;
     }
     if (!is_valid_layer_value(value, false)) {
@@ -279,7 +277,7 @@ static int default_layer_init(void) {
     for (int i = 0; i < ZMK_ENDPOINT_COUNT; i++) {
         fallback_endpoint_layer[i] = ZMK_DEFAULT_LAYER_UNSET;
     }
-    for (int i = 0; i < DEFAULT_LAYER_OS_COUNT; i++) {
+    for (int i = 0; i < ZMK_DEFAULT_LAYER_OS_COUNT; i++) {
         fallback_os_layer[i] = ZMK_DEFAULT_LAYER_UNSET;
     }
 #endif

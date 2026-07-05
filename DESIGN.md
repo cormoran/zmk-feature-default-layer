@@ -41,9 +41,10 @@ push or use `gh`).
   (known pitfalls — all of them have been hit in practice; re-read before each
   phase), `/home/ubuntu/zmk-workspace/skills/build-zmk-config/`,
   `/home/ubuntu/zmk-workspace/skills/debug-zmk-jlink/` (hardware rig quirks).
-- OS detection dependency: `/home/ubuntu/zmk-workspace/zmk-feature-os-detection`
-  (local checkout, branch `codex/init-os-detection`, HEAD `a149efe`). Public
-  API: `include/cormoran/os-detection/os_detection.h`.
+- OS detection dependency: [cormoran/zmk-feature-os-detection](https://github.com/cormoran/zmk-feature-os-detection),
+  merged to `main` (adds `ZMK_OS_IOS`/`ZMK_OS_ANDROID`, 6 values total — this
+  module's `ZMK_DEFAULT_LAYER_OS_COUNT` tracks that). Public API:
+  `include/cormoran/os-detection/os_detection.h`.
 
 ## 3. Naming
 
@@ -221,8 +222,8 @@ message EndpointState {
 }
 message OsLayerState { uint32 os = 1; int32 value = 2; }
 message StateResponse {
-  repeated EndpointState endpoints = 1;   // max_count 8 in .options
-  repeated OsLayerState  os_layers = 2;   // max_count 4
+  repeated EndpointState endpoints = 1;   // max_count 10 in .options
+  repeated OsLayerState  os_layers = 2;   // max_count 6 (ZMK_DEFAULT_LAYER_OS_COUNT)
   uint32 active_endpoint_index = 3;
   uint32 current_os = 4;                  // 0 when os-detection not compiled in
   int32  resolved_layer = 5;              // what the engine last applied
@@ -274,8 +275,10 @@ Update `web/test/*.spec.tsx` accordingly (mock patterns already exist).
 
 ## 10. Dependency on zmk-feature-os-detection
 
-Add to `west/west-dependency/west-dependency.yml` (visible to both downstream
-consumers and our test workspaces):
+Added to `west/west-dependency/west-dependency.yml` (visible to both
+downstream consumers and our test workspaces), pinned to `main` now that
+[cormoran/zmk-feature-os-detection#1](https://github.com/cormoran/zmk-feature-os-detection/pull/1)
+has merged:
 
 ```yaml
 - name: zmk-feature-os-detection
@@ -283,22 +286,8 @@ consumers and our test workspaces):
   revision: main
 ```
 
-**⚠ Blocker to resolve at implementation start:** the os-detection work lives
-only in the LOCAL checkout `/home/ubuntu/zmk-workspace/zmk-feature-os-detection`
-on branch `codex/init-os-detection` (HEAD `a149efe`); `origin/main` on GitHub
-does NOT contain it, and there are uncommitted edits in that working tree
-(Studio-RPC-internal files only — the public header/core we need is committed).
-Until the branch is pushed, use a local URL in the manifest for development:
-
-```yaml
-- name: zmk-feature-os-detection
-  url: file:///home/ubuntu/zmk-workspace/zmk-feature-os-detection
-  revision: a149efe   # codex/init-os-detection
-```
-
-and leave a `TODO(before replacing main)` comment to repoint at GitHub once
-pushed. `west update` clones committed state only, so the uncommitted edits in
-that checkout are invisible (fine for our purposes).
+(Earlier drafts of this doc pinned an unmerged branch or a local `file://`
+checkout while os-detection was still in progress — no longer needed.)
 
 Consumption in C (only two public entry points exist, and they suffice):
 

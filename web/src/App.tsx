@@ -17,7 +17,7 @@ export const SUBSYSTEM_IDENTIFIER = "cormoran__default_layer";
 const UNSET = -1;
 const OS_DETECTION = -2;
 
-const OS_LABELS = ["Unknown", "Windows", "macOS", "Linux"];
+const OS_LABELS = ["Unknown", "Windows", "macOS", "Linux", "iOS", "Android"];
 
 function App() {
   return (

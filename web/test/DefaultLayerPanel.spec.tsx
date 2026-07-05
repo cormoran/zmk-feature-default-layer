@@ -34,6 +34,8 @@ const sampleState: StateResponse = {
     { os: 1, value: 1 },
     { os: 2, value: -1 },
     { os: 3, value: -1 },
+    { os: 4, value: -1 },
+    { os: 5, value: -1 },
   ],
   activeEndpointIndex: 2,
   currentOs: 1,
@@ -106,6 +108,11 @@ describe("DefaultLayerPanel", () => {
         "Windows default layer"
       ) as HTMLSelectElement;
       expect(windowsSelect.value).toBe("1");
+
+      expect(screen.getByLabelText("iOS default layer")).toBeInTheDocument();
+      expect(
+        screen.getByLabelText("Android default layer")
+      ).toBeInTheDocument();
     });
 
     it("sends a set_endpoint_layer request when a connection's layer changes", async () => {
