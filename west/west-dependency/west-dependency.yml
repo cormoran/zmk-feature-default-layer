@@ -9,4 +9,8 @@ manifest:
       revision: main
     - name: zmk-feature-os-detection
       url: https://github.com/cormoran/zmk-feature-os-detection
-      revision: main
+      # TODO: revert to `main` once cormoran/zmk-feature-os-detection#5 merges.
+      # That PR migrates os-detection to the new custom-settings array API; its
+      # `main` still uses the removed ZMK_CUSTOM_SETTING_ARRAY_ELEMENT_DEFINE
+      # and so won't build against custom-settings `main` until #5 lands.
+      revision: codex/custom-settings-array-migration

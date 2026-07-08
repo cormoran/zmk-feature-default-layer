@@ -74,15 +74,21 @@ Define these as constants in one shared header
 (`include/cormoran/default-layer/default_layer.h`):
 `ZMK_DEFAULT_LAYER_UNSET (-1)`, `ZMK_DEFAULT_LAYER_OS_DETECTION (-2)`.
 
-Custom-settings entries (subsystem `cormoran__default_layer`), defined with the
-array-element pattern (`ble_detected/<i>` in zmk-feature-os-detection is the
-reference implementation):
+Custom-settings entries (subsystem `cormoran__default_layer`), each registered
+once as an array with `ZMK_CUSTOM_SETTING_ARRAY_DEFINE` (the per-element
+`ZMK_CUSTOM_SETTING_ARRAY_ELEMENT_DEFINE` macro was removed by that module's P3
+rework; `ble_detected`/`ble_override` in zmk-feature-os-detection is the
+reference implementation of the same migration). Elements are read/written by
+index with `zmk_custom_setting_{read,write}_array_by_key()`:
 
-- `endpoint_layer/<i>` — i = ZMK endpoint index (`zmk_endpoint_instance_to_index`,
+- `endpoint_layer[i]` — i = ZMK endpoint index (`zmk_endpoint_instance_to_index`,
   0..`ZMK_ENDPOINT_COUNT`-1; covers USB + each BLE profile). Default `-1`.
-- `os_layer/<i>` — i = `enum zmk_os` value (0=UNKNOWN, 1=WINDOWS, 2=MACOS,
-  3=LINUX). Default `-1`. `os_layer/-2` is not a thing — OS_DETECTION is not a
+- `os_layer[i]` — i = `enum zmk_os` value (0=UNKNOWN, 1=WINDOWS, 2=MACOS,
+  3=LINUX). Default `-1`. `os_layer[-2]` is not a thing — OS_DETECTION is not a
   valid value inside the OS mapping; validate on write.
+
+The module `select`s `ZMK_CUSTOM_SETTINGS_ARRAY` (see `Kconfig`) so the
+now-gated array feature stays enabled whenever custom settings are present.
 
 Both: `ZMK_CUSTOM_SETTING_VALUE_TYPE_INT32`, confidentiality `RPC_PUBLIC`,
 permissions `UNSECURE`/`UNSECURE`, `ZMK_CUSTOM_SETTING_NO_CONSTRAINT`.
