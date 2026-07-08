@@ -1,5 +1,10 @@
 config ZMK_DEFAULT_LAYER
     bool "Default layer"
+    # When zmk-feature-custom-settings is present the per-endpoint/per-OS
+    # defaults are persisted as array settings (see src/default_layer.c). That
+    # module gates array support behind ZMK_CUSTOM_SETTINGS_ARRAY (default y),
+    # so force it on to keep the build working even if a keyboard disabled it.
+    select ZMK_CUSTOM_SETTINGS_ARRAY if ZMK_CUSTOM_SETTINGS
 
 if ZMK_DEFAULT_LAYER
 

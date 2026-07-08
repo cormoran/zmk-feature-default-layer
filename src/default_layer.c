@@ -37,62 +37,55 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 #if IS_ENABLED(CONFIG_ZMK_CUSTOM_SETTINGS)
 
-#define DEFAULT_LAYER_ENDPOINT_SETTING(_i)                                                         \
-    ZMK_CUSTOM_SETTING_ARRAY_ELEMENT_DEFINE(                                                       \
-        default_layer_endpoint_##_i, DEFAULT_LAYER_SUBSYSTEM_ID, "endpoint_layer", _i,             \
-        ZMK_ENDPOINT_COUNT, ZMK_CUSTOM_SETTING_VALUE_TYPE_INT32,                                   \
-        ZMK_CUSTOM_SETTING_VALUE_INT32(ZMK_DEFAULT_LAYER_UNSET),                                   \
-        ZMK_CUSTOM_SETTING_CONFIDENTIALITY_RPC_PUBLIC, ZMK_CUSTOM_SETTING_PERMISSION_UNSECURE,     \
-        ZMK_CUSTOM_SETTING_PERMISSION_UNSECURE, ZMK_CUSTOM_SETTING_NO_CONSTRAINT)
+/*
+ * Two INT32 array settings, each registered once with
+ * ZMK_CUSTOM_SETTING_ARRAY_DEFINE: "endpoint_layer" (one element per endpoint)
+ * and "os_layer" (one per detected-OS bucket). This replaces the old
+ * per-element ZMK_CUSTOM_SETTING_ARRAY_ELEMENT_DEFINE + #if ladder, removed by
+ * that module's P3 rework in favour of one descriptor owning a single
+ * contiguous backing buffer for the whole array. Elements are read/written by
+ * index with zmk_custom_setting_{read,write}_array_by_key() below (unchanged).
+ *
+ * Every element defaults to ZMK_DEFAULT_LAYER_UNSET. The defaults arrays are
+ * plain pointers (not compound literals) sized to each key's compile-time
+ * maximum; the ARRAY_DEFINE only consumes the first _default_size entries.
+ * NO_CONSTRAINT (not RANGE_INT32) is used because the negative sentinels
+ * (UNSET, OS_DETECTION) fall outside a plain layer-index range - values are
+ * validated in is_valid_layer_value() instead.
+ */
 
 /* ZMK_ENDPOINT_COUNT = 1 (none) + up to 1 (USB) + up to 8 (BLE profiles). */
-#if ZMK_ENDPOINT_COUNT > 0
-DEFAULT_LAYER_ENDPOINT_SETTING(0);
-#endif
-#if ZMK_ENDPOINT_COUNT > 1
-DEFAULT_LAYER_ENDPOINT_SETTING(1);
-#endif
-#if ZMK_ENDPOINT_COUNT > 2
-DEFAULT_LAYER_ENDPOINT_SETTING(2);
-#endif
-#if ZMK_ENDPOINT_COUNT > 3
-DEFAULT_LAYER_ENDPOINT_SETTING(3);
-#endif
-#if ZMK_ENDPOINT_COUNT > 4
-DEFAULT_LAYER_ENDPOINT_SETTING(4);
-#endif
-#if ZMK_ENDPOINT_COUNT > 5
-DEFAULT_LAYER_ENDPOINT_SETTING(5);
-#endif
-#if ZMK_ENDPOINT_COUNT > 6
-DEFAULT_LAYER_ENDPOINT_SETTING(6);
-#endif
-#if ZMK_ENDPOINT_COUNT > 7
-DEFAULT_LAYER_ENDPOINT_SETTING(7);
-#endif
-#if ZMK_ENDPOINT_COUNT > 8
-DEFAULT_LAYER_ENDPOINT_SETTING(8);
-#endif
-#if ZMK_ENDPOINT_COUNT > 9
-DEFAULT_LAYER_ENDPOINT_SETTING(9);
-#endif
 BUILD_ASSERT(ZMK_ENDPOINT_COUNT <= 10,
              "zmk-feature-default-layer only defines settings for up to 10 endpoints");
 
-#define DEFAULT_LAYER_OS_SETTING(_i)                                                               \
-    ZMK_CUSTOM_SETTING_ARRAY_ELEMENT_DEFINE(                                                       \
-        default_layer_os_##_i, DEFAULT_LAYER_SUBSYSTEM_ID, "os_layer", _i,                         \
-        ZMK_DEFAULT_LAYER_OS_COUNT, ZMK_CUSTOM_SETTING_VALUE_TYPE_INT32,                           \
-        ZMK_CUSTOM_SETTING_VALUE_INT32(ZMK_DEFAULT_LAYER_UNSET),                                   \
-        ZMK_CUSTOM_SETTING_CONFIDENTIALITY_RPC_PUBLIC, ZMK_CUSTOM_SETTING_PERMISSION_UNSECURE,     \
-        ZMK_CUSTOM_SETTING_PERMISSION_UNSECURE, ZMK_CUSTOM_SETTING_NO_CONSTRAINT)
+ZMK_CUSTOM_SETTING_ARRAY_DEFAULT_INT32_DEFINE(default_layer_endpoint_defaults,
+                                              ZMK_DEFAULT_LAYER_UNSET, ZMK_DEFAULT_LAYER_UNSET,
+                                              ZMK_DEFAULT_LAYER_UNSET, ZMK_DEFAULT_LAYER_UNSET,
+                                              ZMK_DEFAULT_LAYER_UNSET, ZMK_DEFAULT_LAYER_UNSET,
+                                              ZMK_DEFAULT_LAYER_UNSET, ZMK_DEFAULT_LAYER_UNSET,
+                                              ZMK_DEFAULT_LAYER_UNSET, ZMK_DEFAULT_LAYER_UNSET);
 
-DEFAULT_LAYER_OS_SETTING(0);
-DEFAULT_LAYER_OS_SETTING(1);
-DEFAULT_LAYER_OS_SETTING(2);
-DEFAULT_LAYER_OS_SETTING(3);
-DEFAULT_LAYER_OS_SETTING(4);
-DEFAULT_LAYER_OS_SETTING(5);
+ZMK_CUSTOM_SETTING_ARRAY_DEFINE(default_layer_endpoint, DEFAULT_LAYER_SUBSYSTEM_ID,
+                                "endpoint_layer", ZMK_CUSTOM_SETTING_VALUE_TYPE_INT32,
+                                ZMK_ENDPOINT_COUNT, ZMK_ENDPOINT_COUNT,
+                                default_layer_endpoint_defaults,
+                                ZMK_CUSTOM_SETTING_CONFIDENTIALITY_RPC_PUBLIC,
+                                ZMK_CUSTOM_SETTING_PERMISSION_UNSECURE,
+                                ZMK_CUSTOM_SETTING_PERMISSION_UNSECURE,
+                                ZMK_CUSTOM_SETTING_NO_CONSTRAINT);
+
+ZMK_CUSTOM_SETTING_ARRAY_DEFAULT_INT32_DEFINE(default_layer_os_defaults, ZMK_DEFAULT_LAYER_UNSET,
+                                              ZMK_DEFAULT_LAYER_UNSET, ZMK_DEFAULT_LAYER_UNSET,
+                                              ZMK_DEFAULT_LAYER_UNSET, ZMK_DEFAULT_LAYER_UNSET,
+                                              ZMK_DEFAULT_LAYER_UNSET);
+
+ZMK_CUSTOM_SETTING_ARRAY_DEFINE(default_layer_os, DEFAULT_LAYER_SUBSYSTEM_ID, "os_layer",
+                                ZMK_CUSTOM_SETTING_VALUE_TYPE_INT32, ZMK_DEFAULT_LAYER_OS_COUNT,
+                                ZMK_DEFAULT_LAYER_OS_COUNT, default_layer_os_defaults,
+                                ZMK_CUSTOM_SETTING_CONFIDENTIALITY_RPC_PUBLIC,
+                                ZMK_CUSTOM_SETTING_PERMISSION_UNSECURE,
+                                ZMK_CUSTOM_SETTING_PERMISSION_UNSECURE,
+                                ZMK_CUSTOM_SETTING_NO_CONSTRAINT);
 
 #else /* !CONFIG_ZMK_CUSTOM_SETTINGS */
 
