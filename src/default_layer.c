@@ -261,9 +261,11 @@ static void resolve_and_apply(const char *reason) {
 
 void zmk_default_layer_resolve_and_apply(const char *reason) { resolve_and_apply(reason); }
 
+#if !IS_ENABLED(CONFIG_ZMK_CUSTOM_SETTINGS)
 static void default_layer_init_work_handler(struct k_work *work) { resolve_and_apply("init"); }
 
 static K_WORK_DELAYABLE_DEFINE(default_layer_init_work, default_layer_init_work_handler);
+#endif
 
 static int default_layer_init(void) {
 #if !IS_ENABLED(CONFIG_ZMK_CUSTOM_SETTINGS)
@@ -273,11 +275,16 @@ static int default_layer_init(void) {
     for (int i = 0; i < ZMK_DEFAULT_LAYER_OS_COUNT; i++) {
         fallback_os_layer[i] = ZMK_DEFAULT_LAYER_UNSET;
     }
-#endif
-    /* settings_load() runs from main() after all SYS_INIT levels and raises
-     * no zmk_custom_setting_changed event, so the persisted values are not
-     * necessarily visible yet at this SYS_INIT hook. Defer the first apply. */
+    /* No custom-settings backend: nothing is persisted, so there is no load to
+     * wait for. Defer the first apply off this SYS_INIT hook so the keymap /
+     * endpoint subsystems are ready. */
     k_work_schedule(&default_layer_init_work, K_MSEC(200));
+#endif
+    /* With CONFIG_ZMK_CUSTOM_SETTINGS the initial apply is driven by the
+     * zmk_custom_settings_initialized event instead (see the listener below):
+     * it is raised exactly once, strictly after settings_load() has populated
+     * every persisted value, so the first apply reads the effective persisted
+     * layers rather than racing the load from a fixed delay. */
     return 0;
 }
 SYS_INIT(default_layer_init, APPLICATION, CONFIG_APPLICATION_INIT_PRIORITY);
@@ -294,6 +301,12 @@ static int default_layer_listener(const zmk_event_t *eh) {
     }
 #endif
 #if IS_ENABLED(CONFIG_ZMK_CUSTOM_SETTINGS)
+    if (as_zmk_custom_settings_initialized(eh)) {
+        /* Fired once, after settings_load() has populated every persisted
+         * value - the race-free point to apply the persisted layers at boot. */
+        resolve_and_apply("settings-initialized");
+        return ZMK_EV_EVENT_BUBBLE;
+    }
     const struct zmk_custom_setting_changed *setting_ev = as_zmk_custom_setting_changed(eh);
     if (setting_ev && setting_ev->setting && setting_ev->setting->custom_subsystem_id &&
         strcmp(setting_ev->setting->custom_subsystem_id, DEFAULT_LAYER_SUBSYSTEM_ID) == 0) {
@@ -310,5 +323,6 @@ ZMK_SUBSCRIPTION(default_layer, zmk_endpoint_changed);
 ZMK_SUBSCRIPTION(default_layer, zmk_os_changed);
 #endif
 #if IS_ENABLED(CONFIG_ZMK_CUSTOM_SETTINGS)
+ZMK_SUBSCRIPTION(default_layer, zmk_custom_settings_initialized);
 ZMK_SUBSCRIPTION(default_layer, zmk_custom_setting_changed);
 #endif
