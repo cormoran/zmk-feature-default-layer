@@ -69,9 +69,9 @@ ZMK_CUSTOM_SETTING_ARRAY_DEFINE(default_layer_endpoint, DEFAULT_LAYER_SUBSYSTEM_
                                 "endpoint_layer", ZMK_CUSTOM_SETTING_VALUE_TYPE_INT32,
                                 ZMK_ENDPOINT_COUNT, ZMK_ENDPOINT_COUNT,
                                 default_layer_endpoint_defaults,
-                                ZMK_CUSTOM_SETTING_CONFIDENTIALITY_RPC_PUBLIC,
+                                ZMK_CUSTOM_SETTING_CONFIDENTIALITY_RPC_PERSONAL,
                                 ZMK_CUSTOM_SETTING_PERMISSION_UNSECURE,
-                                ZMK_CUSTOM_SETTING_PERMISSION_UNSECURE,
+                                ZMK_CUSTOM_SETTING_PERMISSION_SECURE,
                                 ZMK_CUSTOM_SETTING_NO_CONSTRAINT);
 
 ZMK_CUSTOM_SETTING_ARRAY_DEFAULT_INT32_DEFINE(default_layer_os_defaults, ZMK_DEFAULT_LAYER_UNSET,
@@ -84,7 +84,7 @@ ZMK_CUSTOM_SETTING_ARRAY_DEFINE(default_layer_os, DEFAULT_LAYER_SUBSYSTEM_ID, "o
                                 ZMK_DEFAULT_LAYER_OS_COUNT, default_layer_os_defaults,
                                 ZMK_CUSTOM_SETTING_CONFIDENTIALITY_RPC_PUBLIC,
                                 ZMK_CUSTOM_SETTING_PERMISSION_UNSECURE,
-                                ZMK_CUSTOM_SETTING_PERMISSION_UNSECURE,
+                                ZMK_CUSTOM_SETTING_PERMISSION_SECURE,
                                 ZMK_CUSTOM_SETTING_NO_CONSTRAINT);
 
 #else /* !CONFIG_ZMK_CUSTOM_SETTINGS */
